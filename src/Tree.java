@@ -42,8 +42,20 @@ public class Tree {
         }
 
         public void setKey(int newKey) {
-            if (key.size() < MAX_SIZE) key.add(newKey);
+            if (key.size() < MAX_SIZE) {
+                // key.add(newKey);
+                // Collections.sort(key);
+                if (newKey < key.get(0)) key.add(0,newKey);
+                else key.add(1, newKey);
+            }
             else System.err.print("key is full. "+newKey+" is not stored.");
+        }
+
+        public ArrayList<Integer> getKey() {
+            return this.key;
+        }
+        public int get(int index) {
+            return key.get(index);
         }
 
         public void removeKey(int keyToRemove) {
@@ -55,10 +67,28 @@ public class Tree {
         root = null;
     }
 
-    public void addItem(int newKey) {
-        if (root == null) {
-            root = new Node();
-            root.setKey(newKey);
+    public Node getRoot() {
+        return root;
+    }
+
+    public void setRoot(Node root) {
+        this.root = root;
+    }
+
+    public void addItem(Node node, int newKey) {
+        if (node == null) {
+            node = new Node();
+            node.setKey(newKey);
+        } else if (node.key.size() < 2) {
+            node.setKey(newKey);
+        } else {
+            if (newKey < node.get(0)) {
+                addItem(node.getLeft(), newKey);
+            } else if (newKey < node.get(1)) {
+                addItem(node.getMiddle(), newKey);
+            } else {
+                addItem(node.getRight(), newKey);
+            }
         }
     }
 
