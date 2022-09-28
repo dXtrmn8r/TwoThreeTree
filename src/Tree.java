@@ -2,19 +2,27 @@ import java.util.ArrayList;
 
 public class Tree {
 
-    private Node root;
     class Node {
-
-        private ArrayList<Integer> key = new ArrayList<Integer>();
-        private final int MAX_SIZE = 2; // maximum size of key
+        private Node parent;
         private Node left;
         private Node middle;
         private Node right;
+        private ArrayList<Integer> key = new ArrayList<>();
+        final int MAX_SIZE = 2;
 
         public Node() {
-            this.left = null;
-            this.middle = null;
-            this.right = null;
+            parent = null;
+            left = null;
+            middle = null;
+            right = null;
+        }
+
+        public Node getParent() {
+            return parent;
+        }
+
+        public void setParent(Node parent) {
+            this.parent = parent;
         }
 
         public Node getLeft() {
@@ -41,26 +49,112 @@ public class Tree {
             this.right = right;
         }
 
-        public void setKey(int newKey) {
-            if (key.size() < MAX_SIZE) key.add(newKey);
-            else System.err.print("key is full. "+newKey+" is not stored.");
+        public ArrayList<Integer> getKey() {
+            return key;
         }
 
-        public void removeKey(int keyToRemove) {
-            key.remove(keyToRemove);
+        public int size() {
+            return this.key.size() + this.left.size() + this.middle.size() + this.right.size();
+        }
+
+        private boolean isLeaf() {
+            return (this.getLeft() == null && this.getMiddle() == null && this.getRight() == null);
+        }
+
+        private int median(ArrayList<Integer> keys, int x) {
+            if (x < keys.get(0)) return keys.get(0);
+            else if (x < keys.get(1)) return x;
+            else return keys.get(1);
+        }
+
+        public boolean insert(int x) {
+            if (isLeaf() & key.size() <= MAX_SIZE) {    // change this to accommodate adding two keys without issue
+                if (key.size() == 0) {
+                    key.add(x);
+                }  else {
+                    if (x < key.get(0)) {
+                        key.add(0,x);             // insert at the beginning
+                    } else if (x > key.get(0)) {
+                        key.add(x);                     // insert at the end
+                    } else {
+                        return false;                   // cannot add duplicates
+                    }
+                }
+            } else if (isLeaf() && key.size() == MAX_SIZE) {
+                Node parentToAdd = this.getParent();
+
+                parentToAdd.insert(median(key, x));
+                Node newLeft = new Node();
+
+                parentToAdd.setLeft(newLeft);
+                newLeft.setParent(parentToAdd);
+
+                Node newRight = new Node();
+
+                parentToAdd.setRight(newRight);
+                newRight.setParent(parentToAdd);
+            }
+
+            return true;
+        }
+
+        public boolean search(int x) {
+
+            if (getKey().contains(x)) {
+                return true;
+            } else if (isLeaf()) {
+                return false;
+            } else if (x < getKey().get(0)) {
+                return getLeft().search(x);
+            } else if (getKey().size() == 2 && x < getKey().get(1)) {
+                return getMiddle().search(x);
+            } else {
+                return getRight().search(x);
+            }
+        }
+
+        public Node whereToPlace(int x) {
+
+            if (isLeaf()) {
+                return this;
+            } else if (x < getKey().get(0)) {
+                return getLeft().whereToPlace(x);
+            } else if (getKey().size() == 2 && x < getKey().get(1)) {
+                return getMiddle().whereToPlace(x);
+            } else {
+                return getRight().whereToPlace(x);
+            }
         }
     }
+
+    Node root;
 
     public Tree() {
         root = null;
     }
 
-    public void addItem(int newKey) {
-        if (root == null) {
-            root = new Node();
-            root.setKey(newKey);
-        }
+    private boolean isAlreadyOnTree(int x) {
+        if (root == null) return false;
+
+        Node t = root;
+        return t.search(x);
     }
+
+    private Node searchNode(int x) {
+        if (root == null) return null;
+        Node t = root;
+        return t.whereToPlace(x);
+    }
+
+    public boolean insert(int x) {
+
+        if (isAlreadyOnTree(x)) return false;
+        Node where = root.whereToPlace(x);
+        return where.insert(x);
+
+    }
+
+
 
 
 }
