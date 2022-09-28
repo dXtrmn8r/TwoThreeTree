@@ -9,6 +9,7 @@ public class Tree {
         private Node right;
         private ArrayList<Integer> key = new ArrayList<>();
         final int MAX_SIZE = 2;
+        final int CRITICAL_SIZE = 3;
 
         public Node() {
             parent = null;
@@ -68,31 +69,39 @@ public class Tree {
         }
 
         public boolean insert(int x) {
-            if (isLeaf() & key.size() <= MAX_SIZE) {    // change this to accommodate adding two keys without issue
+            if (key.size() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
                 if (key.size() == 0) {
-                    key.add(x);
+                    key.add(x);                             // add the one key
                 }  else {
                     if (x < key.get(0)) {
-                        key.add(0,x);             // insert at the beginning
-                    } else if (x > key.get(0)) {
-                        key.add(x);                     // insert at the end
+                        key.add(0,x);                     // insert at the beginning
+                    } else if (x < key.get(size() - 1)) {
+                        key.add(size() - 1,x);            // insert in the middle
+                    } else if (x > key.get(size()) - 1) {
+                        key.add(x);                             // insert at the end
                     } else {
-                        return false;                   // cannot add duplicates
+                        return false;                           // duplicate
                     }
                 }
-            } else if (isLeaf() && key.size() == MAX_SIZE) {
-                Node parentToAdd = this.getParent();
 
-                parentToAdd.insert(median(key, x));
-                Node newLeft = new Node();
+                if (key.size() == CRITICAL_SIZE) {
+                    Node parentToAdd = this.getParent();
 
-                parentToAdd.setLeft(newLeft);
-                newLeft.setParent(parentToAdd);
+                    int median = key.get(1);
+                    // the ArrayList is already sorted, so it'll always be in index 1
 
-                Node newRight = new Node();
+                    parentToAdd.insert(median);
 
-                parentToAdd.setRight(newRight);
-                newRight.setParent(parentToAdd);
+                    Node newLeft = new Node();
+
+                    parentToAdd.setLeft(newLeft);
+                    newLeft.setParent(parentToAdd);
+
+                    Node newRight = new Node();
+
+                    parentToAdd.setRight(newRight);
+                    newRight.setParent(parentToAdd);
+                }
             }
 
             return true;
