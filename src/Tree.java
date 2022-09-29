@@ -28,38 +28,13 @@ public class Tree {
         if (this.root == null) {
             this.root = new Node();
             this.root.insert(x);
+            return true;
         }
         Node where = root.whereToPlace(x);
         where.insert(x);
 
         while (where.keySize() == Node.CRITICAL_SIZE) {
-            Node parentToAdd = where.getParent();
-            if (parentToAdd == null)
-                parentToAdd = new Node();
-
-            int median = where.getKey().get(1);
-            // the ArrayList is already sorted, so it'll always be in index 1
-
-            parentToAdd.insert(median);
-            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
-
-            Node newLeft = new Node();
-            newLeft.insert(where.getKey().get(0));
-            Node newRight = new Node();
-            newRight.insert(where.getKey().get(2));
-
-            if (parentToAdd.size() == 1) {
-                parentToAdd.setLeft(newLeft);
-                parentToAdd.setRight(newRight);
-            } else if (parentKeyLocation == 0) {
-                parentToAdd.setLeft(newLeft);
-                parentToAdd.setMiddle(newRight);
-            } else { // parentKeyLocation == 1
-                parentToAdd.setMiddle(newLeft);
-                parentToAdd.setRight(newRight);
-            }
-            newLeft.setParent(parentToAdd);
-            newRight.setParent(parentToAdd);
+            Node parentToAdd = where.split();
 
             where.setParent(parentToAdd);
             where = where.getParent();            // iteratively run this splitting code at the parent
@@ -89,8 +64,6 @@ public class Tree {
         Node location = root;
         if (location == null) return -1; // returns -1 if node is not found
 
-        // do in-order search on tree
-        // search Horstmann's Big Java for how
         int size = 0;
         if (location.isLeaf()) return location.at(index);
 
@@ -166,13 +139,12 @@ public class Tree {
         }
 
         public int size() {
-            int sizeVal = 0;
+            int sizeVal = keySize();
             if (!isLeaf()) {
                 if (this.getLeft() != null) sizeVal += this.getLeft().size();
                 if (this.getMiddle() != null) sizeVal += this.getMiddle().size();
                 if (this.getRight() != null) sizeVal += this.getRight().size();
             }
-            sizeVal += keySize();
             return sizeVal;
         }
 
@@ -197,6 +169,167 @@ public class Tree {
                 }
             }
             return true;
+        }
+
+        public Node split() {
+
+            if (isLeaf()) return splitLeaf();
+
+            Node parentToAdd = this.getParent();
+            ArrayList<Node> children = new ArrayList<Node>();
+
+            //check for any old nodes
+            if (getLeft()   != null) children.add(getLeft());
+            if (getMiddle() != null) children.add(getMiddle());
+            if (getRight()  != null) children.add(getRight());
+
+            //create new nodes and add them
+            Node newLeft = new Node();
+            newLeft.insert(this.getKey().get(0));
+            children.add(newLeft);
+            Node newRight = new Node();
+            newRight.insert(this.getKey().get(2));
+            children.add(newRight);
+
+            if (parentToAdd == null)
+                parentToAdd = new Node();
+
+            int median = this.getKey().get(1);
+            // the ArrayList is already sorted, so it'll always be in index 1
+
+            parentToAdd.insert(median);
+            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
+
+            if (children.size() == 2) {
+                parentToAdd.setLeft(newLeft);
+                newLeft.setParent(parentToAdd);
+
+                parentToAdd.setRight(newRight);
+                newRight.setParent(parentToAdd);
+            }
+
+            return parentToAdd;
+        }
+
+        private Node splitLeaf() {
+            Node parentToAdd = this.getParent();
+
+            //create new nodes and add them
+            Node newLeft = new Node();
+            newLeft.insert(this.getKey().get(0));
+            Node newRight = new Node();
+            newRight.insert(this.getKey().get(2));
+
+            if (parentToAdd == null)
+                parentToAdd = new Node();
+
+            int median = this.getKey().get(1);
+            // the ArrayList is already sorted, so it'll always be in index 1
+
+            parentToAdd.insert(median);
+            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
+            int parentKeySize = parentToAdd.keySize();
+
+            if (parentKeySize == 1) {
+                parentToAdd.setLeft(newLeft);
+                newLeft.setParent(parentToAdd);
+
+                parentToAdd.setRight(newRight);
+                newRight.setParent(parentToAdd);
+            } else if (parentKeyLocation == 0 && parentKeySize == 2){
+                parentToAdd.setLeft(newLeft);
+                newLeft.setParent(parentToAdd);
+
+                parentToAdd.setMiddle(newRight);
+                newRight.setParent(parentToAdd);
+            } else if (parentKeyLocation == 1 && parentKeySize == 2) {
+                parentToAdd.setMiddle(newLeft);
+                newLeft.setParent(parentToAdd);
+
+                parentToAdd.setRight(newRight);
+                newRight.setParent(parentToAdd);
+
+            } else if (parentKeySize == 3) {
+                parentToAdd.getKey().clear();
+                parentToAdd.insert(median);
+                if (parentKeyLocation == 0) {
+                    Node oldLeft = parentToAdd.getMiddle();
+                    Node oldRight = parentToAdd.getRight();
+
+                    Node newLeftNonLeafNode = new Node();
+                    newLeftNonLeafNode.insert(this.getKey().get(0));
+                    Node newRightNonLeafNode = new Node();
+                    newRightNonLeafNode.insert(this.getKey().get(2));
+
+                    newLeftNonLeafNode.setLeft(newLeft);
+                    newLeft.setParent(newLeftNonLeafNode);
+                    newLeftNonLeafNode.setRight(newRight);
+                    newRight.setParent(newLeftNonLeafNode);
+
+                    newLeftNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setLeft(newLeftNonLeafNode);
+
+                    newRightNonLeafNode.setLeft(oldLeft);
+                    oldLeft.setParent(newRightNonLeafNode);
+                    newRightNonLeafNode.setRight(oldRight);
+                    oldRight.setParent(newRightNonLeafNode);
+
+                    newRightNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setRight(newRightNonLeafNode);
+                } else if (parentKeyLocation == 1) {
+                    Node oldLeft = parentToAdd.getLeft();
+                    Node oldRight = parentToAdd.getRight();
+
+                    Node newLeftNonLeafNode = new Node();
+                    newLeftNonLeafNode.insert(this.getKey().get(0));
+                    Node newRightNonLeafNode = new Node();
+                    newRightNonLeafNode.insert(this.getKey().get(2));
+
+                    newLeftNonLeafNode.setLeft(oldLeft);
+                    oldLeft.setParent(newLeftNonLeafNode);
+                    newLeftNonLeafNode.setRight(newLeft);
+                    newLeft.setParent(newLeftNonLeafNode);
+
+                    newLeftNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setLeft(newLeftNonLeafNode);
+
+                    newRightNonLeafNode.setLeft(newRight);
+                    newRight.setParent(newRightNonLeafNode);
+                    newRightNonLeafNode.setRight(oldRight);
+                    oldRight.setParent(newRightNonLeafNode);
+
+                    newRightNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setRight(newRightNonLeafNode);
+                } else {
+                    Node oldLeft = parentToAdd.getLeft();
+                    Node oldRight = parentToAdd.getMiddle();
+
+                    Node newLeftNonLeafNode = new Node();
+                    newLeftNonLeafNode.insert(this.getKey().get(0));
+                    Node newRightNonLeafNode = new Node();
+                    newRightNonLeafNode.insert(this.getKey().get(2));
+
+                    newLeftNonLeafNode.setLeft(oldLeft);
+                    oldLeft.setParent(newLeftNonLeafNode);
+                    newLeftNonLeafNode.setRight(oldRight);
+                    oldRight.setParent(newLeftNonLeafNode);
+
+                    newLeftNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setLeft(newLeftNonLeafNode);
+
+                    newRightNonLeafNode.setLeft(newLeft);
+                    newLeft.setParent(newRightNonLeafNode);
+                    newRightNonLeafNode.setRight(newRight);
+                    oldRight.setParent(newRightNonLeafNode);
+
+                    newRightNonLeafNode.setParent(parentToAdd);
+                    parentToAdd.setRight(newRightNonLeafNode);
+                }
+
+                parentToAdd.setMiddle(null);
+            }
+
+            return parentToAdd;
         }
 
         public boolean search(int x) {
