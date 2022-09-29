@@ -32,28 +32,37 @@ public class Tree {
         Node where = root.whereToPlace(x);
         where.insert(x);
 
-        if (where.key.size() == Node.CRITICAL_SIZE) {
-            Node parentToAdd = root.getParent();
+        while (where.keySize() == Node.CRITICAL_SIZE) {
+            Node parentToAdd = where.getParent();
             if (parentToAdd == null)
                 parentToAdd = new Node();
 
-            int median = root.getKey().get(1);
+            int median = where.getKey().get(1);
             // the ArrayList is already sorted, so it'll always be in index 1
 
             parentToAdd.insert(median);
+            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
 
             Node newLeft = new Node();
-
-            parentToAdd.setLeft(newLeft);
-            newLeft.setParent(parentToAdd);
-            newLeft.insert(root.getKey().get(0));
-
+            newLeft.insert(where.getKey().get(0));
             Node newRight = new Node();
+            newRight.insert(where.getKey().get(2));
 
-            parentToAdd.setRight(newRight);
+            if (parentToAdd.size() == 1) {
+                parentToAdd.setLeft(newLeft);
+                parentToAdd.setRight(newRight);
+            } else if (parentKeyLocation == 0) {
+                parentToAdd.setLeft(newLeft);
+                parentToAdd.setMiddle(newRight);
+            } else { // parentKeyLocation == 1
+                parentToAdd.setMiddle(newLeft);
+                parentToAdd.setRight(newRight);
+            }
+            newLeft.setParent(parentToAdd);
             newRight.setParent(parentToAdd);
-            newRight.insert(root.getKey().get(2));
 
+            where.setParent(parentToAdd);
+            where = where.getParent();            // iteratively run this splitting code at the parent
             if (root.getParent() != null) root = root.getParent();
         }
         return true;
@@ -70,19 +79,44 @@ public class Tree {
         return this.root.size();
     }
 
-    public int get(int x) {
+    /**
+     * Gets the {@code Integer} at index x
+     *
+     * @param index the index to search for
+     * @return
+     */
+    public int get(int index) {
+        Node location = root;
+        if (location == null) return -1; // returns -1 if node is not found
 
-        return 0;
+        // do in-order search on tree
+        // search Horstmann's Big Java for how
+        int size = 0;
+        if (location.isLeaf()) return location.at(index);
+
+        size = location.getLeft().size();
+
+        if (index < size) return location.getLeft().at(index);
+        else if (index < size + 1) return location.at(0);
+
+        size++;
+        if (location.getMiddle() != null) {
+            size = location.getMiddle().size() + 1;
+            if (index < size) return location.getMiddle().at(index - size);
+            else if (index < size + 1) return location.at(1);
+        }
+
+        return location.getRight().at(index - size);
     }
 
     class Node {
         final static int MAX_SIZE = 2;
         final static int CRITICAL_SIZE = 3;
+        private ArrayList<Integer> key = new ArrayList<>();
         private Node parent;
         private Node left;
         private Node middle;
         private Node right;
-        private ArrayList<Integer> key = new ArrayList<>();
 
         public Node() {
             parent = null;
@@ -127,13 +161,18 @@ public class Tree {
             return key;
         }
 
+        public int keySize() {
+            return key.size();
+        }
+
         public int size() {
             int sizeVal = 0;
-            if (isLeaf()) sizeVal += this.key.size();
-            if (this.getLeft() != null) sizeVal += this.getLeft().size();
-            if (this.getRight() != null) sizeVal += this.getRight().size();
-            if (this.getMiddle() != null) sizeVal += this.getMiddle().size();
-
+            if (!isLeaf()) {
+                if (this.getLeft() != null) sizeVal += this.getLeft().size();
+                if (this.getMiddle() != null) sizeVal += this.getMiddle().size();
+                if (this.getRight() != null) sizeVal += this.getRight().size();
+            }
+            sizeVal += keySize();
             return sizeVal;
         }
 
@@ -142,34 +181,32 @@ public class Tree {
         }
 
         public boolean insert(int x) {
-            if (key.size() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
-                if (key.size() == 0) {
-                    key.add(x);                             // add the one key
+            if (keySize() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
+                if (keySize() == 0) {
+                    getKey().add(x);                             // add the one key
                 } else {
-                    if (x < key.get(0)) {
-                        key.add(0, x);                     // insert at the beginning
-                    } else if (x < key.get(size() - 1)) {
-                        key.add(size() - 1, x);            // insert in the middle
-                    } else if (x > key.get(size() - 1)) {
-                        key.add(x);                             // insert at the end
+                    if (x < getKey().get(0)) {
+                        getKey().add(0, x);                     // insert at the beginning
+                    } else if (x < getKey().get(keySize() - 1)) {
+                        getKey().add(size() - 1, x);            // insert in the middle
+                    } else if (x > getKey().get(keySize() - 1)) {
+                        getKey().add(x);                             // insert at the end
                     } else {
                         return false;                           // duplicate
                     }
                 }
             }
-
             return true;
         }
 
         public boolean search(int x) {
-
             if (getKey().contains(x)) {
                 return true;
             } else if (isLeaf()) {
                 return false;
             } else if (x < getKey().get(0)) {
                 return getLeft().search(x);
-            } else if (getKey().size() == 2 && x < getKey().get(1)) {
+            } else if (keySize() == 2 && x < getKey().get(1)) {
                 return getMiddle().search(x);
             } else {
                 return getRight().search(x);
@@ -177,16 +214,20 @@ public class Tree {
         }
 
         public Node whereToPlace(int x) {
-
-            if (isLeaf()) {
+            if (isLeaf() || getKey().contains(x)) {
                 return this;
             } else if (x < getKey().get(0)) {
                 return getLeft().whereToPlace(x);
-            } else if (getKey().size() == 2 && x < getKey().get(1)) {
+            } else if (keySize() == Node.MAX_SIZE
+                    && x < getKey().get(size() - 1)) {
                 return getMiddle().whereToPlace(x);
             } else {
                 return getRight().whereToPlace(x);
             }
+        }
+
+        public int at(int index) {
+            return getKey().get(index);
         }
     }
 
