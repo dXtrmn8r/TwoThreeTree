@@ -2,14 +2,87 @@ import java.util.ArrayList;
 
 public class Tree {
 
+    Node root;
+
+    public Tree() {
+        root = null;
+    }
+
+    private boolean isAlreadyOnTree(int x) {
+        if (this.root == null) return false;
+
+        Node t = root;
+        return t.search(x);
+    }
+
+    private Node searchNode(int x) {
+        if (this.root == null) return null;
+        Node t = this.root.whereToPlace(x);
+        if (!t.getKey().contains(x)) return null;
+        return t;
+    }
+
+    public boolean insert(int x) {
+
+        if (isAlreadyOnTree(x)) return false;
+        if (this.root == null) {
+            this.root = new Node();
+            this.root.insert(x);
+        }
+        Node where = root.whereToPlace(x);
+        where.insert(x);
+
+        if (where.key.size() == Node.CRITICAL_SIZE) {
+            Node parentToAdd = root.getParent();
+            if (parentToAdd == null)
+                parentToAdd = new Node();
+
+            int median = root.getKey().get(1);
+            // the ArrayList is already sorted, so it'll always be in index 1
+
+            parentToAdd.insert(median);
+
+            Node newLeft = new Node();
+
+            parentToAdd.setLeft(newLeft);
+            newLeft.setParent(parentToAdd);
+            newLeft.insert(root.getKey().get(0));
+
+            Node newRight = new Node();
+
+            parentToAdd.setRight(newRight);
+            newRight.setParent(parentToAdd);
+            newRight.insert(root.getKey().get(2));
+
+            if (root.getParent() != null) root = root.getParent();
+        }
+        return true;
+    }
+
+    public int size(int x) {
+        Node xRoot = this.searchNode(x);
+
+        if (xRoot == null) return 0;
+        return xRoot.size();
+    }
+
+    public int size() {
+        return this.root.size();
+    }
+
+    public int get(int x) {
+
+        return 0;
+    }
+
     class Node {
+        final static int MAX_SIZE = 2;
+        final static int CRITICAL_SIZE = 3;
         private Node parent;
         private Node left;
         private Node middle;
         private Node right;
         private ArrayList<Integer> key = new ArrayList<>();
-        final int MAX_SIZE = 2;
-        final int CRITICAL_SIZE = 3;
 
         public Node() {
             parent = null;
@@ -55,52 +128,33 @@ public class Tree {
         }
 
         public int size() {
-            return this.key.size() + this.left.size() + this.middle.size() + this.right.size();
+            int sizeVal = 0;
+            if (isLeaf()) sizeVal += this.key.size();
+            if (this.getLeft() != null) sizeVal += this.getLeft().size();
+            if (this.getRight() != null) sizeVal += this.getRight().size();
+            if (this.getMiddle() != null) sizeVal += this.getMiddle().size();
+
+            return sizeVal;
         }
 
         private boolean isLeaf() {
             return (this.getLeft() == null && this.getMiddle() == null && this.getRight() == null);
         }
 
-        private int median(ArrayList<Integer> keys, int x) {
-            if (x < keys.get(0)) return keys.get(0);
-            else if (x < keys.get(1)) return x;
-            else return keys.get(1);
-        }
-
         public boolean insert(int x) {
             if (key.size() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
                 if (key.size() == 0) {
                     key.add(x);                             // add the one key
-                }  else {
+                } else {
                     if (x < key.get(0)) {
-                        key.add(0,x);                     // insert at the beginning
+                        key.add(0, x);                     // insert at the beginning
                     } else if (x < key.get(size() - 1)) {
-                        key.add(size() - 1,x);            // insert in the middle
-                    } else if (x > key.get(size()) - 1) {
+                        key.add(size() - 1, x);            // insert in the middle
+                    } else if (x > key.get(size() - 1)) {
                         key.add(x);                             // insert at the end
                     } else {
                         return false;                           // duplicate
                     }
-                }
-
-                if (key.size() == CRITICAL_SIZE) {
-                    Node parentToAdd = this.getParent();
-
-                    int median = key.get(1);
-                    // the ArrayList is already sorted, so it'll always be in index 1
-
-                    parentToAdd.insert(median);
-
-                    Node newLeft = new Node();
-
-                    parentToAdd.setLeft(newLeft);
-                    newLeft.setParent(parentToAdd);
-
-                    Node newRight = new Node();
-
-                    parentToAdd.setRight(newRight);
-                    newRight.setParent(parentToAdd);
                 }
             }
 
@@ -135,35 +189,5 @@ public class Tree {
             }
         }
     }
-
-    Node root;
-
-    public Tree() {
-        root = null;
-    }
-
-    private boolean isAlreadyOnTree(int x) {
-        if (root == null) return false;
-
-        Node t = root;
-        return t.search(x);
-    }
-
-    private Node searchNode(int x) {
-        if (root == null) return null;
-        Node t = root;
-        return t.whereToPlace(x);
-    }
-
-    public boolean insert(int x) {
-
-        if (isAlreadyOnTree(x)) return false;
-        Node where = root.whereToPlace(x);
-        return where.insert(x);
-
-    }
-
-
-
 
 }
