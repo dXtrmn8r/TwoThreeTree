@@ -117,7 +117,7 @@ public class GivenTreeTests {
         t.insert(13);
         t.insert(20);
         t.insert(7);
-        t.insert(4);
+        t.insert(4);        // double split here
         t.insert(1);
         t.insert(9);
         t.insert(15);
