@@ -152,7 +152,7 @@ public class Tree {
             return (this.getLeft() == null && this.getMiddle() == null && this.getRight() == null);
         }
 
-        public boolean insert(int x) {
+        public void insert(int x) {
             if (keySize() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
                 if (keySize() == 0) {
                     getKey().add(x);                             // add the one key
@@ -163,12 +163,9 @@ public class Tree {
                         getKey().add(size() - 1, x);            // insert in the middle
                     } else if (x > getKey().get(keySize() - 1)) {
                         getKey().add(x);                             // insert at the end
-                    } else {
-                        return false;                           // duplicate
                     }
                 }
             }
-            return true;
         }
 
         public Node split() {
@@ -179,9 +176,9 @@ public class Tree {
             ArrayList<Node> children = new ArrayList<Node>();
 
             //check for any old nodes
-            if (getLeft()   != null) children.add(getLeft());
+            if (getLeft() != null) children.add(getLeft());
             if (getMiddle() != null) children.add(getMiddle());
-            if (getRight()  != null) children.add(getRight());
+            if (getRight() != null) children.add(getRight());
 
             //create new nodes and add them
             Node newLeft = new Node();
@@ -236,7 +233,7 @@ public class Tree {
 
                 parentToAdd.setRight(newRight);
                 newRight.setParent(parentToAdd);
-            } else if (parentKeyLocation == 0 && parentKeySize == 2){
+            } else if (parentKeyLocation == 0 && parentKeySize == 2) {
                 parentToAdd.setLeft(newLeft);
                 newLeft.setParent(parentToAdd);
 
@@ -250,81 +247,50 @@ public class Tree {
                 newRight.setParent(parentToAdd);
 
             } else if (parentKeySize == 3) {
+                median = parentToAdd.at(1);
+                ArrayList<Node> nodesToDistribute = new ArrayList<Node>();
+
+                if (parentKeyLocation == 0) {
+                    nodesToDistribute.add(parentToAdd.getMiddle());
+                    nodesToDistribute.add(parentToAdd.getRight());
+                    nodesToDistribute.add(newLeft);
+                    nodesToDistribute.add(newRight);
+                } else if (parentKeyLocation == 1) {
+                    nodesToDistribute.add(newLeft);
+                    nodesToDistribute.add(parentToAdd.getMiddle());
+                    nodesToDistribute.add(parentToAdd.getRight());
+                    nodesToDistribute.add(newRight);
+                } else if (parentKeyLocation == 2) {
+                    nodesToDistribute.add(newLeft);
+                    nodesToDistribute.add(newRight);
+                    nodesToDistribute.add(parentToAdd.getMiddle());
+                    nodesToDistribute.add(parentToAdd.getRight());
+                }
+
+                Node newLeftNonLeafNode = new Node();
+                Node newRightNonLeafNode = new Node();
+
+                newLeftNonLeafNode.setLeft(nodesToDistribute.get(0));
+                nodesToDistribute.get(0).setParent(newLeftNonLeafNode);
+                newLeftNonLeafNode.setRight(nodesToDistribute.get(1));
+                nodesToDistribute.get(1).setParent(newLeftNonLeafNode);
+
+                newLeftNonLeafNode.insert(parentToAdd.at(0));
+
+                newLeftNonLeafNode.setParent(parentToAdd);
+                parentToAdd.setLeft(newLeftNonLeafNode);
+
+                newRightNonLeafNode.setLeft(nodesToDistribute.get(2));
+                nodesToDistribute.get(2).setParent(newRightNonLeafNode);
+                newRightNonLeafNode.setRight(nodesToDistribute.get(3));
+                nodesToDistribute.get(3).setParent(newRightNonLeafNode);
+
+                newRightNonLeafNode.insert(parentToAdd.at(2));
+
+                newRightNonLeafNode.setParent(parentToAdd);
+                parentToAdd.setRight(newRightNonLeafNode);
                 parentToAdd.getKey().clear();
                 parentToAdd.insert(median);
-                if (parentKeyLocation == 0) {
-                    Node oldLeft = parentToAdd.getMiddle();
-                    Node oldRight = parentToAdd.getRight();
-
-                    Node newLeftNonLeafNode = new Node();
-                    newLeftNonLeafNode.insert(this.getKey().get(0));
-                    Node newRightNonLeafNode = new Node();
-                    newRightNonLeafNode.insert(this.getKey().get(2));
-
-                    newLeftNonLeafNode.setLeft(newLeft);
-                    newLeft.setParent(newLeftNonLeafNode);
-                    newLeftNonLeafNode.setRight(newRight);
-                    newRight.setParent(newLeftNonLeafNode);
-
-                    newLeftNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setLeft(newLeftNonLeafNode);
-
-                    newRightNonLeafNode.setLeft(oldLeft);
-                    oldLeft.setParent(newRightNonLeafNode);
-                    newRightNonLeafNode.setRight(oldRight);
-                    oldRight.setParent(newRightNonLeafNode);
-
-                    newRightNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setRight(newRightNonLeafNode);
-                } else if (parentKeyLocation == 1) {
-                    Node oldLeft = parentToAdd.getLeft();
-                    Node oldRight = parentToAdd.getRight();
-
-                    Node newLeftNonLeafNode = new Node();
-                    newLeftNonLeafNode.insert(this.getKey().get(0));
-                    Node newRightNonLeafNode = new Node();
-                    newRightNonLeafNode.insert(this.getKey().get(2));
-
-                    newLeftNonLeafNode.setLeft(oldLeft);
-                    oldLeft.setParent(newLeftNonLeafNode);
-                    newLeftNonLeafNode.setRight(newLeft);
-                    newLeft.setParent(newLeftNonLeafNode);
-
-                    newLeftNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setLeft(newLeftNonLeafNode);
-
-                    newRightNonLeafNode.setLeft(newRight);
-                    newRight.setParent(newRightNonLeafNode);
-                    newRightNonLeafNode.setRight(oldRight);
-                    oldRight.setParent(newRightNonLeafNode);
-
-                    newRightNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setRight(newRightNonLeafNode);
-                } else {
-                    Node oldLeft = parentToAdd.getLeft();
-                    Node oldRight = parentToAdd.getMiddle();
-
-                    Node newLeftNonLeafNode = new Node();
-                    newLeftNonLeafNode.insert(this.getKey().get(0));
-                    Node newRightNonLeafNode = new Node();
-                    newRightNonLeafNode.insert(this.getKey().get(2));
-
-                    newLeftNonLeafNode.setLeft(oldLeft);
-                    oldLeft.setParent(newLeftNonLeafNode);
-                    newLeftNonLeafNode.setRight(oldRight);
-                    oldRight.setParent(newLeftNonLeafNode);
-
-                    newLeftNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setLeft(newLeftNonLeafNode);
-
-                    newRightNonLeafNode.setLeft(newLeft);
-                    newLeft.setParent(newRightNonLeafNode);
-                    newRightNonLeafNode.setRight(newRight);
-                    oldRight.setParent(newRightNonLeafNode);
-
-                    newRightNonLeafNode.setParent(parentToAdd);
-                    parentToAdd.setRight(newRightNonLeafNode);
-                }
 
                 parentToAdd.setMiddle(null);
             }
