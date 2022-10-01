@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * An implementation of a 2-3 Tree for SJSU CS 146 with Dr. David Scot Taylor.
  *
@@ -5,9 +7,6 @@
  * @version 2.1
  * @since 1
  */
-
-import java.util.ArrayList;
-
 public class Tree {
 
     Node root;
@@ -19,10 +18,12 @@ public class Tree {
     private boolean inTree(int x) {
         if (this.root == null)
             return false;
-        return root.search(x);
+
+        Node location = root.searchNode(x);
+        return (location != null && location.getKey().contains(x));
     }
 
-    private Node searchNode(int x) {
+    private Node search(int x) {
         if (this.root == null)
             return null;
         Node t = this.root.searchNode(x);
@@ -39,7 +40,9 @@ public class Tree {
             return true;
         }
         Node nodeAdded = root.searchNode(x);
-        nodeAdded.insert(x);
+
+        if (nodeAdded.keySize() <= Node.MAX_KEY_SIZE)    // change this to accommodate adding two keys without issue
+            nodeAdded.addKey(nodeAdded.indexToCheck(x),x);
 
         if (nodeAdded.keySize() > Node.MAX_KEY_SIZE)
             nodeAdded.split();
@@ -52,7 +55,7 @@ public class Tree {
     }
 
     public int size(int x) {
-        Node xRoot = this.searchNode(x);
+        Node xRoot = this.search(x);
 
         if (xRoot == null)
             return 0;
@@ -126,10 +129,6 @@ public class Tree {
             return children.size();
         }
 
-        private int indexOf(int value) {
-            return key.indexOf(value);
-        }
-
         private int at(int index) {
             return getKey().get(index);
         }
@@ -145,11 +144,6 @@ public class Tree {
             return (this.numberOfChildren() == 0);
         }
 
-        private void insert(int x) {
-            if (keySize() <= MAX_KEY_SIZE)    // change this to accommodate adding two keys without issue
-                addKey(indexToCheck(x),x);
-        }
-
         private void split() {
             Node newParent;
             int median = this.at(1);
@@ -159,7 +153,7 @@ public class Tree {
             else {
                 newParent = getParent();
                 newParent.addKey(newParent.indexToCheck(median), median);
-                medianLocation = getParent().indexOf(median);
+                medianLocation = getParent().getKey().indexOf(median);
             }
 
             if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
@@ -209,11 +203,6 @@ public class Tree {
                 indexToSearch++;
             }
             return getChild(indexToSearch).get(index - cumulativeSize);
-        }
-
-        private boolean search(int x) {
-            Node location = searchNode(x);
-            return (location != null && location.getKey().contains(x));
         }
 
         private Node searchNode(int x) {
