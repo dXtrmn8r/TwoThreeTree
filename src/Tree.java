@@ -1,7 +1,8 @@
 import java.util.ArrayList;
 
 /**
- * An implementation of a 2-3 Tree for SJSU CS 146 with Dr. David Scot Taylor.
+ * An implementation of a 2-3 Tree for CS 146 at San José State University
+ * with Dr. David Scot Taylor.
  *
  * @author Darren Peralta
  * @version 2.1
@@ -15,17 +16,8 @@ public class Tree {
         root = null;
     }
 
-    private boolean inTree(int x) {
-        if (this.root == null)
-            return false;
-
-        Node location = root.searchNode(x);
-        return (location != null && location.getKey().contains(x));
-    }
-
     private Node search(int x) {
-        if (this.root == null)
-            return null;
+        if (this.root == null) return null;
         Node t = this.root.searchNode(x);
         if (!t.getKey().contains(x))
             return null;
@@ -34,7 +26,7 @@ public class Tree {
 
     public boolean insert(int x) {
 
-        if (inTree(x)) return false;
+        if (search(x) != null) return false;
         if (root == null) {
             root = new Node(x);
             return true;
