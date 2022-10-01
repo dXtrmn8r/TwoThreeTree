@@ -5,25 +5,42 @@ import java.util.ArrayList;
  * with Dr. David Scot Taylor.
  *
  * @author Darren Peralta
- * @version 2.1
+ * @version 2.2
  * @since 1
  */
 public class Tree {
 
+    /**
+     * The root of the entire {@code Tree}.
+     */
     Node root;
 
+    /**
+     * Returns an empty instance of a 2-3 Tree.
+     */
     public Tree() {
         root = null;
     }
 
+    /**
+     * Searches for a specific value within the {@code Tree}.
+     * @param x the value to search for
+     * @return the node the value is in or {@code null} if no node has that value
+     */
     private Node search(int x) {
         if (this.root == null) return null;
         Node t = this.root.searchNode(x);
-        if (!t.getKey().contains(x))
+        if (!t.key.contains(x))
             return null;
         return t;
     }
 
+    /**
+     * Inserts a particular value in the {@code Tree}.
+     * @param x the value to insert
+     * @return {@code true} if {@code x} is inserted or {@code false} if {@code x}
+     * is already in the tree.
+     */
     public boolean insert(int x) {
 
         if (search(x) != null) return false;
@@ -33,10 +50,10 @@ public class Tree {
         }
         Node nodeAdded = root.searchNode(x);
 
-        if (nodeAdded.keySize() <= Node.MAX_KEY_SIZE)    // change this to accommodate adding two keys without issue
+        if (nodeAdded.numberOfKeys() <= Node.MAX_KEY_SIZE)
             nodeAdded.addKey(nodeAdded.indexToCheck(x),x);
 
-        if (nodeAdded.keySize() > Node.MAX_KEY_SIZE)
+        if (nodeAdded.numberOfKeys() > Node.MAX_KEY_SIZE)
             nodeAdded.split();
         if (root.getParent() != null)
             root = root.getParent();
@@ -46,6 +63,12 @@ public class Tree {
         return true;
     }
 
+    /**
+     * Calculates the size of the subtree rooted at the {@code Node}
+     * with a particular value.
+     * @param x the value that will be at the root of the subtree.
+     * @return the number of {@code int} keys in that subtree.
+     */
     public int size(int x) {
         Node xRoot = this.search(x);
 
@@ -54,6 +77,10 @@ public class Tree {
         return xRoot.size();
     }
 
+    /**
+     * Calculates the size of the entire {@code Tree}.
+     * @return the number of {@code int} keys in the entire tree.
+     */
     public int size() {
         if (root == null)
             return 0;
@@ -61,10 +88,10 @@ public class Tree {
     }
 
     /**
-     * Gets the {@code Integer} at index x if the {@code Tree} is a sorted array.
+     * Gets the {@code int} key at index x if the {@code Tree} is a sorted array.
      *
      * @param index the index to search for
-     * @return the {@code Integer} at the corresponding {@code index}.
+     * @return the {@code Integer} at the corresponding {@code index}
      */
     public int get(int index) {
         if (root == null)
@@ -72,25 +99,45 @@ public class Tree {
         return root.get(index);
     }
 
+    /**
+     * An implementation of a {@code Node} in a 2-3 tree.
+     */
     private static class Node {
-        final static int MAX_KEY_SIZE = 2;
-        final static int MAX_CHILDREN_SIZE = 3;
+        private final static int MAX_KEY_SIZE = 2;
+        private final static int MAX_CHILDREN_SIZE = 3;
         private final ArrayList<Integer> key = new ArrayList<>();
         private final ArrayList<Node> children = new ArrayList<>();
         private Node parent;
 
-        public Node(int value) {
+        /**
+         * Creates a specific instance of the node with a key.
+         * @param value the first int to be stored in the {@code Node}.
+         */
+        private Node(int value) {
             key.add(value);
         }
 
+        /**
+         * Returns the parent of the {@code Node}.
+         * @return the parent {@code Node}
+         */
         private Node getParent() {
             return parent;
         }
 
+        /**
+         * Sets the node's parent to a given {@code Node}
+         * @param parent the {@code Node} becoming the new parent {@code Node}.
+         */
         private void setParent(Node parent) {
             this.parent = parent;
         }
 
+        /**
+         * Returns the child {@code Node} from a certain index.
+         * @param index the index of the child {@code Node}
+         * @return the corresponding child {@code Node}
+         */
         private Node getChild(int index) {
             return children.get(index);
         }
@@ -109,34 +156,43 @@ public class Tree {
             key.add(index, newKey);
         }
 
-        private ArrayList<Integer> getKey() {
-            return key;
-        }
-
-        private int keySize() {
+        /**
+         * Returns the number of keys the {@code Node} has.
+         * @return the number of keys
+         */
+        private int numberOfKeys() {
             return key.size();
         }
 
+        /**
+         * Returns the number of child nodes the {@code Node} has
+         * @return the number of child nodes
+         */
         private int numberOfChildren() {
             return children.size();
         }
 
+        /**
+         * Returns the key at the specified index.
+         * @param index the index
+         * @return the key at the specified index.
+         */
         private int at(int index) {
-            return getKey().get(index);
+            return key.get(index);
         }
 
         private int size() {
-            int sizeVal = keySize();
+            int sizeVal = numberOfKeys();
             for (Node n : children)
                 sizeVal += n.size();
             return sizeVal;
         }
 
-        private boolean isLeaf() {
-            return (this.numberOfChildren() == 0);
-        }
-
+        /**
+         * Splits the node having more than the maximum keys allowed.
+         */
         private void split() {
+            assert(numberOfKeys() > MAX_KEY_SIZE);
             Node newParent;
             int median = this.at(1);
             int medianLocation = 0;
@@ -145,7 +201,7 @@ public class Tree {
             else {
                 newParent = getParent();
                 newParent.addKey(newParent.indexToCheck(median), median);
-                medianLocation = getParent().getKey().indexOf(median);
+                medianLocation = getParent().key.indexOf(median);
             }
 
             if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
@@ -167,12 +223,12 @@ public class Tree {
                 newParent.getChild(medianLocation + 1).setParent(newParent);
 
                 if (getParent() == null) {
-                    newParent.getKey().remove(0);    // old left child
-                    newParent.getKey().remove(1);    // old right child
+                    newParent.key.remove(0);    // old left child
+                    newParent.key.remove(1);    // old right child
                 } else
                     newParent.children.remove(medianLocation + 2);
             }
-            if (newParent.keySize() > MAX_KEY_SIZE) newParent.split();
+            if (newParent.numberOfKeys() > MAX_KEY_SIZE) newParent.split();
         }
 
         public int get(int index) {
@@ -180,7 +236,7 @@ public class Tree {
             int indexToSearch = 0;
             Node nodeToSearch;
 
-            if (isLeaf()) return this.at(index);
+            if (numberOfChildren() == 0) return this.at(index);
 
             while (index > cumulativeSize) {
                 nodeToSearch = getChild(indexToSearch);
@@ -198,21 +254,28 @@ public class Tree {
         }
 
         private Node searchNode(int x) {
-            if (getKey().contains(x) || isLeaf())
+            if (key.contains(x) || numberOfChildren() == 0)
                 return this;
             else
                 return getChild(indexToCheck(x)).searchNode(x);
         }
 
+        /**
+         * Given a value, it looks for the index of the child {@code Node}
+         * to go down on.
+         *
+         * @param x the value to search for
+         * @return the index of the child {@code Node} to traverse to.
+         */
         private int indexToCheck(int x) {
             int indexToCheck = 0;
-            while (indexToCheck < this.keySize() && x > this.at(indexToCheck))
+            while (indexToCheck < this.numberOfKeys() && x > this.at(indexToCheck))
                 indexToCheck++;
             return indexToCheck;
         }
 
         private void inspect() {
-            assert (keySize() <= MAX_KEY_SIZE);
+            assert (numberOfKeys() <= MAX_KEY_SIZE);
             assert (numberOfChildren() <= MAX_CHILDREN_SIZE);
             for (Node child : children) {
                 child.inspect();
