@@ -1,6 +1,7 @@
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 
 
@@ -119,27 +120,27 @@ public class GivenTreeTests {
     @Test
     public void testDuplicates() {
         Tree t = new Tree();
-        t.insert(1);
-        t.insert(9);
-        t.insert(15);
-        t.insert(13);
-        t.insert(20);
-        t.insert(7);
-        t.insert(4);        // double split here
+        assertTrue(t.insert(1));
+        assertTrue(t.insert(9));
+        assertTrue(t.insert(15));
+        assertTrue(t.insert(13));
+        assertTrue(t.insert(20));
+        assertTrue(t.insert(7));
+        assertTrue(t.insert(4));        // double split here
         assertFalse(t.insert(1));
-        t.insert(9);
-        t.insert(15);
-        t.insert(1);
-        t.insert(9);
-        t.insert(15);
-        t.insert(13);
-        t.insert(20);
-        t.insert(7);
-        t.insert(4);
-        t.insert(13);
-        t.insert(20);
-        t.insert(7);
-        t.insert(4);
+        assertFalse(t.insert(9));
+        assertFalse(t.insert(15));
+        assertFalse(t.insert(1));
+        assertFalse(t.insert(9));
+        assertFalse(t.insert(15));
+        assertFalse(t.insert(13));
+        assertFalse(t.insert(20));
+        assertFalse(t.insert(7));
+        assertFalse(t.insert(4));
+        assertFalse(t.insert(13));
+        assertFalse(t.insert(20));
+        assertFalse(t.insert(7));
+        assertFalse(t.insert(4));
 
         assertEquals(7, t.size(9));
         assertEquals(3, t.size(4));
