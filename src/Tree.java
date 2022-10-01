@@ -232,6 +232,7 @@ public class Tree {
 
         private void inspect() {
             assert (keySize() <= MAX_KEY_SIZE);
+            assert (numberOfChildren() <= MAX_CHILDREN_SIZE);
             for (Node child : children) {
                 child.inspect();
             }
