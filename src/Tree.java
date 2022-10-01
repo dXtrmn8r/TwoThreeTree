@@ -1,3 +1,11 @@
+/**
+ * An implementation of a 2-3 Tree for SJSU CS 146 with Dr. David Scot Taylor.
+ *
+ * @author Darren Peralta
+ * @version 2.1
+ * @since 1
+ */
+
 import java.util.ArrayList;
 
 public class Tree {
@@ -8,326 +16,225 @@ public class Tree {
         root = null;
     }
 
-    private boolean isAlreadyOnTree(int x) {
-        if (this.root == null) return false;
-
-        Node t = root;
-        return t.search(x);
+    private boolean inTree(int x) {
+        if (this.root == null)
+            return false;
+        return root.search(x);
     }
 
     private Node searchNode(int x) {
-        if (this.root == null) return null;
-        Node t = this.root.whereToPlace(x);
-        if (!t.getKey().contains(x)) return null;
+        if (this.root == null)
+            return null;
+        Node t = this.root.searchNode(x);
+        if (!t.getKey().contains(x))
+            return null;
         return t;
     }
 
     public boolean insert(int x) {
 
-        if (isAlreadyOnTree(x)) return false;
-        if (this.root == null) {
-            this.root = new Node();
-            this.root.insert(x);
+        if (inTree(x)) return false;
+        if (root == null) {
+            root = new Node(x);
             return true;
         }
-        Node where = root.whereToPlace(x);
-        where.insert(x);
+        Node nodeAdded = root.searchNode(x);
+        nodeAdded.insert(x);
 
-        while (where.keySize() == Node.CRITICAL_SIZE) {
-            Node parentToAdd = where.split();
+        if (nodeAdded.keySize() > Node.MAX_KEY_SIZE)
+            nodeAdded.split();
+        if (root.getParent() != null)
+            root = root.getParent();
 
-            where.setParent(parentToAdd);
-            where = where.getParent();            // iteratively run this splitting code at the parent
-            if (root.getParent() != null) root = root.getParent();
-        }
+        root.inspect();
+
         return true;
     }
 
     public int size(int x) {
         Node xRoot = this.searchNode(x);
 
-        if (xRoot == null) return 0;
+        if (xRoot == null)
+            return 0;
         return xRoot.size();
     }
 
     public int size() {
-        return this.root.size();
+        if (root == null)
+            return 0;
+        return root.size();
     }
 
     /**
-     * Gets the {@code Integer} at index x
+     * Gets the {@code Integer} at index x if the {@code Tree} is a sorted array.
      *
      * @param index the index to search for
-     * @return
+     * @return the {@code Integer} at the corresponding {@code index}.
      */
     public int get(int index) {
-        Node location = root;
-        if (location == null) return -1; // returns -1 if node is not found
-
-        int size = 0;
-        if (location.isLeaf()) return location.at(index);
-
-        size = location.getLeft().size();
-
-        if (index < size) return location.getLeft().at(index);
-        else if (index < size + 1) return location.at(0);
-
-        size++;
-        if (location.getMiddle() != null) {
-            size = location.getMiddle().size() + 1;
-            if (index < size) return location.getMiddle().at(index - size);
-            else if (index < size + 1) return location.at(1);
-        }
-
-        return location.getRight().at(index - size);
+        if (root == null)
+            return -1;
+        return root.get(index);
     }
 
-    class Node {
-        final static int MAX_SIZE = 2;
-        final static int CRITICAL_SIZE = 3;
-        private ArrayList<Integer> key = new ArrayList<>();
+    private static class Node {
+        final static int MAX_KEY_SIZE = 2;
+        final static int MAX_CHILDREN_SIZE = 3;
+        private final ArrayList<Integer> key = new ArrayList<>();
+        private final ArrayList<Node> children = new ArrayList<>();
         private Node parent;
-        private Node left;
-        private Node middle;
-        private Node right;
 
-        public Node() {
-            parent = null;
-            left = null;
-            middle = null;
-            right = null;
+        public Node(int value) {
+            key.add(value);
         }
 
-        public Node getParent() {
+        private Node getParent() {
             return parent;
         }
 
-        public void setParent(Node parent) {
+        private void setParent(Node parent) {
             this.parent = parent;
         }
 
-        public Node getLeft() {
-            return left;
+        private Node getChild(int index) {
+            return children.get(index);
         }
 
-        public void setLeft(Node left) {
-            this.left = left;
+        private void addChild(Node newChild) {
+            newChild.setParent(this);
+            children.add(newChild);
         }
 
-        public Node getMiddle() {
-            return middle;
+        private void addChild (int index, Node newChild) {
+            newChild.setParent(this);
+            children.add(index, newChild);
         }
 
-        public void setMiddle(Node middle) {
-            this.middle = middle;
+        private void addKey(int index, int newKey) {
+            key.add(index, newKey);
         }
 
-        public Node getRight() {
-            return right;
-        }
-
-        public void setRight(Node right) {
-            this.right = right;
-        }
-
-        public ArrayList<Integer> getKey() {
+        private ArrayList<Integer> getKey() {
             return key;
         }
 
-        public int keySize() {
+        private int keySize() {
             return key.size();
         }
 
-        public int size() {
+        private int numberOfChildren() {
+            return children.size();
+        }
+
+        private int indexOf(int value) {
+            return key.indexOf(value);
+        }
+
+        private int at(int index) {
+            return getKey().get(index);
+        }
+
+        private int size() {
             int sizeVal = keySize();
-            if (!isLeaf()) {
-                if (this.getLeft() != null) sizeVal += this.getLeft().size();
-                if (this.getMiddle() != null) sizeVal += this.getMiddle().size();
-                if (this.getRight() != null) sizeVal += this.getRight().size();
-            }
+            for (Node n : children)
+                sizeVal += n.size();
             return sizeVal;
         }
 
         private boolean isLeaf() {
-            return (this.getLeft() == null && this.getMiddle() == null && this.getRight() == null);
+            return (this.numberOfChildren() == 0);
         }
 
-        public void insert(int x) {
-            if (keySize() < CRITICAL_SIZE) {    // change this to accommodate adding two keys without issue
-                if (keySize() == 0) {
-                    getKey().add(x);                             // add the one key
-                } else {
-                    if (x < getKey().get(0)) {
-                        getKey().add(0, x);                     // insert at the beginning
-                    } else if (x < getKey().get(keySize() - 1)) {
-                        getKey().add(size() - 1, x);            // insert in the middle
-                    } else if (x > getKey().get(keySize() - 1)) {
-                        getKey().add(x);                             // insert at the end
+        private void insert(int x) {
+            if (keySize() <= MAX_KEY_SIZE)    // change this to accommodate adding two keys without issue
+                addKey(indexToCheck(x),x);
+        }
+
+        private void split() {
+            Node newParent;
+            int median = this.at(1);
+            int medianLocation = 0;
+            if (getParent() == null)
+                newParent = this;
+            else {
+                newParent = getParent();
+                newParent.addKey(newParent.indexToCheck(median), median);
+                medianLocation = getParent().indexOf(median);
+            }
+
+            if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
+                newParent.setParent(new Node(median));
+                newParent = newParent.getParent();
+
+                for (int i = 0; i < 2; i++) {
+                    newParent.addChild(new Node(this.at(2 * i)));
+                    newParent.getChild(i).setParent(newParent);
+                    for (int j = 0; j < 2; j++) {
+                        newParent.getChild(i).addChild(this.getChild(2 * i + j));
+                        newParent.getChild(i).getChild(j).setParent(newParent);
                     }
                 }
+            } else {
+                newParent.addChild(medianLocation, new Node(this.at(0)));    // leftmost element
+                newParent.getChild(medianLocation).setParent(newParent);
+                newParent.addChild(medianLocation + 1, new Node(this.at(2)));    // rightmost element
+                newParent.getChild(medianLocation + 1).setParent(newParent);
+
+                if (getParent() == null) {
+                    newParent.getKey().remove(0);    // old left child
+                    newParent.getKey().remove(1);    // old right child
+                } else
+                    newParent.children.remove(medianLocation + 2);
             }
+            if (newParent.keySize() > MAX_KEY_SIZE) newParent.split();
         }
 
-        public Node split() {
+        public int get(int index) {
+            int cumulativeSize = 0;
+            int indexToSearch = 0;
+            Node nodeToSearch;
 
-            if (isLeaf()) return splitLeaf();
+            if (isLeaf()) return this.at(index);
 
-            Node parentToAdd = this.getParent();
-            ArrayList<Node> children = new ArrayList<Node>();
-
-            //check for any old nodes
-            if (getLeft() != null) children.add(getLeft());
-            if (getMiddle() != null) children.add(getMiddle());
-            if (getRight() != null) children.add(getRight());
-
-            //create new nodes and add them
-            Node newLeft = new Node();
-            newLeft.insert(this.getKey().get(0));
-            children.add(newLeft);
-            Node newRight = new Node();
-            newRight.insert(this.getKey().get(2));
-            children.add(newRight);
-
-            if (parentToAdd == null)
-                parentToAdd = new Node();
-
-            int median = this.getKey().get(1);
-            // the ArrayList is already sorted, so it'll always be in index 1
-
-            parentToAdd.insert(median);
-            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
-
-            if (children.size() == 2) {
-                parentToAdd.setLeft(newLeft);
-                newLeft.setParent(parentToAdd);
-
-                parentToAdd.setRight(newRight);
-                newRight.setParent(parentToAdd);
-            }
-
-            return parentToAdd;
-        }
-
-        private Node splitLeaf() {
-            Node parentToAdd = this.getParent();
-
-            //create new nodes and add them
-            Node newLeft = new Node();
-            newLeft.insert(this.getKey().get(0));
-            Node newRight = new Node();
-            newRight.insert(this.getKey().get(2));
-
-            if (parentToAdd == null)
-                parentToAdd = new Node();
-
-            int median = this.getKey().get(1);
-            // the ArrayList is already sorted, so it'll always be in index 1
-
-            parentToAdd.insert(median);
-            int parentKeyLocation = parentToAdd.getKey().indexOf(median);
-            int parentKeySize = parentToAdd.keySize();
-
-            if (parentKeySize == 1) {
-                parentToAdd.setLeft(newLeft);
-                newLeft.setParent(parentToAdd);
-
-                parentToAdd.setRight(newRight);
-                newRight.setParent(parentToAdd);
-            } else if (parentKeyLocation == 0 && parentKeySize == 2) {
-                parentToAdd.setLeft(newLeft);
-                newLeft.setParent(parentToAdd);
-
-                parentToAdd.setMiddle(newRight);
-                newRight.setParent(parentToAdd);
-            } else if (parentKeyLocation == 1 && parentKeySize == 2) {
-                parentToAdd.setMiddle(newLeft);
-                newLeft.setParent(parentToAdd);
-
-                parentToAdd.setRight(newRight);
-                newRight.setParent(parentToAdd);
-
-            } else if (parentKeySize == 3) {
-                median = parentToAdd.at(1);
-                ArrayList<Node> nodesToDistribute = new ArrayList<Node>();
-
-                if (parentKeyLocation == 0) {
-                    nodesToDistribute.add(parentToAdd.getMiddle());
-                    nodesToDistribute.add(parentToAdd.getRight());
-                    nodesToDistribute.add(newLeft);
-                    nodesToDistribute.add(newRight);
-                } else if (parentKeyLocation == 1) {
-                    nodesToDistribute.add(newLeft);
-                    nodesToDistribute.add(parentToAdd.getMiddle());
-                    nodesToDistribute.add(parentToAdd.getRight());
-                    nodesToDistribute.add(newRight);
-                } else if (parentKeyLocation == 2) {
-                    nodesToDistribute.add(newLeft);
-                    nodesToDistribute.add(newRight);
-                    nodesToDistribute.add(parentToAdd.getMiddle());
-                    nodesToDistribute.add(parentToAdd.getRight());
+            while (index > cumulativeSize) {
+                nodeToSearch = getChild(indexToSearch);
+                if (index < cumulativeSize + nodeToSearch.size())
+                    return nodeToSearch.get(index - cumulativeSize);
+                else if (index == cumulativeSize + nodeToSearch.size()) {
+                    assert (cumulativeSize + nodeToSearch.size() + 1 < size());
+                    return at(indexToSearch);
                 }
 
-                Node newLeftNonLeafNode = new Node();
-                Node newRightNonLeafNode = new Node();
-
-                newLeftNonLeafNode.setLeft(nodesToDistribute.get(0));
-                nodesToDistribute.get(0).setParent(newLeftNonLeafNode);
-                newLeftNonLeafNode.setRight(nodesToDistribute.get(1));
-                nodesToDistribute.get(1).setParent(newLeftNonLeafNode);
-
-                newLeftNonLeafNode.insert(parentToAdd.at(0));
-
-                newLeftNonLeafNode.setParent(parentToAdd);
-                parentToAdd.setLeft(newLeftNonLeafNode);
-
-                newRightNonLeafNode.setLeft(nodesToDistribute.get(2));
-                nodesToDistribute.get(2).setParent(newRightNonLeafNode);
-                newRightNonLeafNode.setRight(nodesToDistribute.get(3));
-                nodesToDistribute.get(3).setParent(newRightNonLeafNode);
-
-                newRightNonLeafNode.insert(parentToAdd.at(2));
-
-                newRightNonLeafNode.setParent(parentToAdd);
-                parentToAdd.setRight(newRightNonLeafNode);
-                parentToAdd.getKey().clear();
-                parentToAdd.insert(median);
-
-                parentToAdd.setMiddle(null);
+                cumulativeSize += (nodeToSearch.size() + 1);
+                indexToSearch++;
             }
-
-            return parentToAdd;
+            return getChild(indexToSearch).get(index - cumulativeSize);
         }
 
-        public boolean search(int x) {
-            if (getKey().contains(x)) {
-                return true;
-            } else if (isLeaf()) {
-                return false;
-            } else if (x < getKey().get(0)) {
-                return getLeft().search(x);
-            } else if (keySize() == 2 && x < getKey().get(1)) {
-                return getMiddle().search(x);
-            } else {
-                return getRight().search(x);
-            }
+        private boolean search(int x) {
+            Node location = searchNode(x);
+            return (location != null && location.getKey().contains(x));
         }
 
-        public Node whereToPlace(int x) {
-            if (isLeaf() || getKey().contains(x)) {
+        private Node searchNode(int x) {
+            if (getKey().contains(x) || isLeaf())
                 return this;
-            } else if (x < getKey().get(0)) {
-                return getLeft().whereToPlace(x);
-            } else if (keySize() == Node.MAX_SIZE
-                    && x < getKey().get(size() - 1)) {
-                return getMiddle().whereToPlace(x);
-            } else {
-                return getRight().whereToPlace(x);
-            }
+            else
+                return getChild(indexToCheck(x)).searchNode(x);
         }
 
-        public int at(int index) {
-            return getKey().get(index);
+        private int indexToCheck(int x) {
+            int indexToCheck = 0;
+            while (indexToCheck < this.keySize() && x > this.at(indexToCheck))
+                indexToCheck++;
+            return indexToCheck;
+        }
+
+        private void inspect() {
+            assert (keySize() <= MAX_KEY_SIZE);
+            for (Node child : children) {
+                child.inspect();
+            }
         }
     }
-
 }
