@@ -5,7 +5,7 @@ import java.util.ArrayList;
  * with Dr. David Scot Taylor.
  *
  * @author Darren Peralta
- * @version 2.2
+ * @version 2.3
  * @since 1
  */
 public class Tree {
@@ -24,6 +24,7 @@ public class Tree {
 
     /**
      * Searches for a specific value within the {@code Tree}.
+     *
      * @param x the value to search for
      * @return the node the value is in or {@code null} if no node has that value
      */
@@ -37,13 +38,15 @@ public class Tree {
 
     /**
      * Inserts a particular value in the {@code Tree}.
+     *
      * @param x the value to insert
      * @return {@code true} if {@code x} is inserted or {@code false} if {@code x}
      * is already in the tree.
      */
     public boolean insert(int x) {
 
-        if (search(x) != null) return false;
+        if (search(x) != null)
+            return false;
         if (root == null) {
             root = new Node(x);
             return true;
@@ -51,12 +54,12 @@ public class Tree {
         Node nodeAdded = root.searchNode(x);
 
         if (nodeAdded.numberOfKeys() <= Node.MAX_KEY_SIZE)
-            nodeAdded.addKey(nodeAdded.indexToCheck(x),x);
+            nodeAdded.addKey(nodeAdded.indexToCheck(x), x);
 
         if (nodeAdded.numberOfKeys() > Node.MAX_KEY_SIZE)
             nodeAdded.split();
-        if (root.getParent() != null)
-            root = root.getParent();
+        if (root.parent != null)
+            root = root.parent;
 
         root.inspect();
 
@@ -66,6 +69,7 @@ public class Tree {
     /**
      * Calculates the size of the subtree rooted at the {@code Node}
      * with a particular value.
+     *
      * @param x the value that will be at the root of the subtree.
      * @return the number of {@code int} keys in that subtree.
      */
@@ -79,6 +83,7 @@ public class Tree {
 
     /**
      * Calculates the size of the entire {@code Tree}.
+     *
      * @return the number of {@code int} keys in the entire tree.
      */
     public int size() {
@@ -111,6 +116,7 @@ public class Tree {
 
         /**
          * Creates a specific instance of the node with a key.
+         *
          * @param value the first int to be stored in the {@code Node}.
          */
         private Node(int value) {
@@ -118,23 +124,8 @@ public class Tree {
         }
 
         /**
-         * Returns the parent of the {@code Node}.
-         * @return the parent {@code Node}
-         */
-        private Node getParent() {
-            return parent;
-        }
-
-        /**
-         * Sets the node's parent to a given {@code Node}
-         * @param parent the {@code Node} becoming the new parent {@code Node}.
-         */
-        private void setParent(Node parent) {
-            this.parent = parent;
-        }
-
-        /**
          * Returns the child {@code Node} from a certain index.
+         *
          * @param index the index of the child {@code Node}
          * @return the corresponding child {@code Node}
          */
@@ -143,12 +134,12 @@ public class Tree {
         }
 
         private void addChild(Node newChild) {
-            newChild.setParent(this);
+            newChild.parent = this;
             children.add(newChild);
         }
 
-        private void addChild (int index, Node newChild) {
-            newChild.setParent(this);
+        private void addChild(int index, Node newChild) {
+            newChild.parent = this;
             children.add(index, newChild);
         }
 
@@ -158,6 +149,7 @@ public class Tree {
 
         /**
          * Returns the number of keys the {@code Node} has.
+         *
          * @return the number of keys
          */
         private int numberOfKeys() {
@@ -166,6 +158,7 @@ public class Tree {
 
         /**
          * Returns the number of child nodes the {@code Node} has
+         *
          * @return the number of child nodes
          */
         private int numberOfChildren() {
@@ -174,6 +167,7 @@ public class Tree {
 
         /**
          * Returns the key at the specified index.
+         *
          * @param index the index
          * @return the key at the specified index.
          */
@@ -192,43 +186,54 @@ public class Tree {
          * Splits the node having more than the maximum keys allowed.
          */
         private void split() {
-            assert(numberOfKeys() > MAX_KEY_SIZE);
+            assert (numberOfKeys() > MAX_KEY_SIZE);
             Node newParent;
             int median = this.at(1);
             int medianLocation = 0;
-            if (getParent() == null)
+            if (this.parent == null)
                 newParent = this;
             else {
-                newParent = getParent();
+                newParent = this.parent;
                 newParent.addKey(newParent.indexToCheck(median), median);
-                medianLocation = getParent().key.indexOf(median);
+                medianLocation = parent.key.indexOf(median);
             }
 
             if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
-                newParent.setParent(new Node(median));
-                newParent = newParent.getParent();
+                Node newGrandparent;
+                if (newParent.parent == null) {
+                    newGrandparent = new Node(median);
+                    medianLocation = 0;
+                } else {
+                    newGrandparent = newParent.parent;
+                    newGrandparent.addKey(newParent.indexToCheck(median), median);
+                    medianLocation = parent.key.indexOf(median);
+                    newGrandparent.addChild(medianLocation, newParent);
+                }
+
+                newParent = newGrandparent;
+                this.parent = newGrandparent;
 
                 for (int i = 0; i < 2; i++) {
-                    newParent.addChild(new Node(this.at(2 * i)));
-                    newParent.getChild(i).setParent(newParent);
-                    for (int j = 0; j < 2; j++) {
-                        newParent.getChild(i).addChild(this.getChild(2 * i + j));
-                        newParent.getChild(i).getChild(j).setParent(newParent);
-                    }
+                    newParent.addChild(medianLocation + i,new Node(this.at(2 * i)));
+                    if (this.numberOfChildren() > MAX_CHILDREN_SIZE)
+                        for (int j = 0; j < 2; j++)
+                            newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
                 }
             } else {
-                newParent.addChild(medianLocation, new Node(this.at(0)));    // leftmost element
-                newParent.getChild(medianLocation).setParent(newParent);
-                newParent.addChild(medianLocation + 1, new Node(this.at(2)));    // rightmost element
-                newParent.getChild(medianLocation + 1).setParent(newParent);
 
-                if (getParent() == null) {
+                for (int i = 0; i < 2; i++) {
+                    newParent.addChild(medianLocation + i,new Node(this.at(2 * i)));
+                }
+
+                if (parent == null) {
                     newParent.key.remove(0);    // old left child
                     newParent.key.remove(1);    // old right child
-                } else
+                } else {
                     newParent.children.remove(medianLocation + 2);
+                }
             }
-            if (newParent.numberOfKeys() > MAX_KEY_SIZE) newParent.split();
+            if (newParent.numberOfKeys() > MAX_KEY_SIZE)
+                newParent.split();
         }
 
         public int get(int index) {
