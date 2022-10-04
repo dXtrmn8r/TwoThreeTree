@@ -53,8 +53,7 @@ public class Tree {
         }
         Node nodeAdded = root.searchNode(x);
 
-        if (nodeAdded.numberOfKeys() <= Node.MAX_KEY_SIZE)
-            nodeAdded.addKey(nodeAdded.indexToCheck(x), x);
+        nodeAdded.addKey(nodeAdded.indexToCheck(x), x);
 
         if (nodeAdded.numberOfKeys() > Node.MAX_KEY_SIZE)
             nodeAdded.split();
@@ -186,7 +185,7 @@ public class Tree {
          * Splits the node having more than the maximum keys allowed.
          */
         private void split() {
-            assert (numberOfKeys() > MAX_KEY_SIZE);
+            // assert (numberOfKeys() > MAX_KEY_SIZE);
             Node newParent;
             int median = this.at(1);
             int medianLocation = 0;
@@ -212,7 +211,7 @@ public class Tree {
                         for (int j = 0; j < 2; j++)
                             newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
                     }
-                    if (newParent.numberOfChildren() == 4 && newParent.getChild(medianLocation + 2).numberOfChildren() == 4) {
+                    if (newParent.numberOfChildren() == 4 && newParent.numberOfKeys() < 3) {
                         // which will still have the three proper children + the child with 3 keys or four nodes
                         newParent.children.remove(medianLocation + 2);
                     }
@@ -234,7 +233,7 @@ public class Tree {
                 newParent.split();
         }
 
-        public int get(int index) {
+        private int get(int index) {
             int cumulativeSize = 0;
             int indexToSearch = 0;
             Node nodeToSearch;
@@ -246,7 +245,7 @@ public class Tree {
                 if (index < cumulativeSize + nodeToSearch.size())
                     return nodeToSearch.get(index - cumulativeSize);
                 else if (index == cumulativeSize + nodeToSearch.size()) {
-                    assert (cumulativeSize + nodeToSearch.size() + 1 < size());
+                    // assert (cumulativeSize + nodeToSearch.size() + 1 < size());
                     return at(indexToSearch);
                 }
 
