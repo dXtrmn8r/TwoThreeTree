@@ -190,39 +190,37 @@ public class Tree {
             Node newParent;
             int median = this.at(1);
             int medianLocation = 0;
-            if (this.parent == null)
-                newParent = this;
-            else {
+            if (this.parent != null) {
                 newParent = this.parent;
                 newParent.addKey(newParent.indexToCheck(median), median);
                 medianLocation = parent.key.indexOf(median);
+            } else {
+                newParent = this;
             }
 
-            if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
-                Node newGrandparent;
-                if (newParent.parent == null) {
-                    newGrandparent = new Node(median);
+            if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {  //four children
+                if (this.parent == null) {
+                    newParent = new Node(median);
                     medianLocation = 0;
-                } else {
-                    newGrandparent = newParent.parent;
-                    newGrandparent.addKey(newParent.indexToCheck(median), median);
-                    medianLocation = parent.key.indexOf(median);
-                    newGrandparent.addChild(medianLocation, newParent);
                 }
 
-                newParent = newGrandparent;
-                this.parent = newGrandparent;
+                this.parent = newParent;
 
                 for (int i = 0; i < 2; i++) {
-                    newParent.addChild(medianLocation + i,new Node(this.at(2 * i)));
-                    if (this.numberOfChildren() > MAX_CHILDREN_SIZE)
+                    newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
+                    if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
                         for (int j = 0; j < 2; j++)
                             newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
+                    }
+                    if (newParent.numberOfChildren() == 4 && newParent.getChild(medianLocation + 2).numberOfChildren() == 4) {
+                        // which will still have the three proper children + the child with 3 keys or four nodes
+                        newParent.children.remove(medianLocation + 2);
+                    }
                 }
-            } else {
+            } else {    // if the node only has three children
 
                 for (int i = 0; i < 2; i++) {
-                    newParent.addChild(medianLocation + i,new Node(this.at(2 * i)));
+                    newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
                 }
 
                 if (parent == null) {
