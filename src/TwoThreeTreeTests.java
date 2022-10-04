@@ -387,8 +387,42 @@ public class TwoThreeTreeTests {
         assertEquals(2, t.size(190));
         assertEquals(10, t.size());
 
-        t.insert(200);
-        finalTwoTreeTree(t);
+        for (int i = 0; i < 21; i++) {
+            t.insert(10 * (i + 20));
+        }
+
+        assertEquals(1, t.size(100));
+        assertEquals(3, t.size(110));
+        assertEquals(1, t.size(120));
+        assertEquals(7, t.size(130));
+        assertEquals(1, t.size(140));
+        assertEquals(3, t.size(150));
+        assertEquals(1, t.size(160));
+        assertEquals(15, t.size(170));
+        assertEquals(1, t.size(180));
+        assertEquals(3, t.size(190));
+        assertEquals(1, t.size(200));
+        assertEquals(7, t.size(210));
+        assertEquals(1, t.size(220));
+        assertEquals(3, t.size(230));
+        assertEquals(1, t.size(240));
+        assertEquals(31, t.size(250));
+        assertEquals(1, t.size(260));
+        assertEquals(3, t.size(270));
+        assertEquals(1, t.size(280));
+        assertEquals(7, t.size(290));
+        assertEquals(1, t.size(300));
+        assertEquals(3, t.size(310));
+        assertEquals(1, t.size(320));
+        assertEquals(15, t.size(330));
+        assertEquals(1, t.size(340));
+        assertEquals(3, t.size(350));
+        assertEquals(1, t.size(360));
+        assertEquals(7, t.size(370));
+        assertEquals(1, t.size(380));
+        assertEquals(3, t.size(390));
+        assertEquals(1, t.size(400));
+        assertEquals(31, t.size());
     }
 
     private void finalTwoTreeTree(Tree t) {
