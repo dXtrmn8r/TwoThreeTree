@@ -5,7 +5,7 @@ import java.util.ArrayList;
  * with Dr. David Scot Taylor.
  *
  * @author Darren Peralta
- * @version 2.3
+ * @version 2.4
  * @since 1
  */
 public class Tree {
@@ -106,12 +106,13 @@ public class Tree {
     /**
      * An implementation of a {@code Node} in a 2-3 tree.
      */
-    private static class Node {
+    private class Node {
         private final static int MAX_KEY_SIZE = 2;
         private final static int MAX_CHILDREN_SIZE = 3;
         private final ArrayList<Integer> key = new ArrayList<>();
         private final ArrayList<Node> children = new ArrayList<>();
         private Node parent;
+        private int size;
 
         /**
          * Creates a specific instance of the node with a key.
@@ -120,6 +121,7 @@ public class Tree {
          */
         private Node(int value) {
             key.add(value);
+            size = 1;
         }
 
         /**
@@ -135,15 +137,18 @@ public class Tree {
         private void addChild(Node newChild) {
             newChild.parent = this;
             children.add(newChild);
+            incrementSize(newChild);
         }
 
         private void addChild(int index, Node newChild) {
             newChild.parent = this;
             children.add(index, newChild);
+            incrementSize(newChild);
         }
 
         private void addKey(int index, int newKey) {
             key.add(index, newKey);
+            incrementSize();
         }
 
         /**
@@ -175,10 +180,7 @@ public class Tree {
         }
 
         private int size() {
-            int sizeVal = numberOfKeys();
-            for (Node n : children)
-                sizeVal += n.size();
-            return sizeVal;
+            return this.size;
         }
 
         /**
@@ -207,12 +209,11 @@ public class Tree {
 
                 for (int i = 0; i < 2; i++) {
                     newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
-                    if (this.numberOfChildren() > MAX_CHILDREN_SIZE) {
-                        for (int j = 0; j < 2; j++)
-                            newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
-                    }
+                    for (int j = 0; j < 2; j++)
+                        newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
                     if (newParent.numberOfChildren() == 4 && newParent.numberOfKeys() < 3) {
                         // which will still have the three proper children + the child with 3 keys or four nodes
+                        newParent.decrementSize(newParent.getChild(medianLocation + 2));
                         newParent.children.remove(medianLocation + 2);
                     }
                 }
@@ -225,7 +226,9 @@ public class Tree {
                 if (parent == null) {
                     newParent.key.remove(0);    // old left child
                     newParent.key.remove(1);    // old right child
+                    newParent.size -= 2;
                 } else {
+                    newParent.decrementSize(newParent.getChild(medianLocation + 2));
                     newParent.children.remove(medianLocation + 2);
                 }
             }
@@ -281,6 +284,27 @@ public class Tree {
             assert (numberOfChildren() <= MAX_CHILDREN_SIZE);
             for (Node child : children) {
                 child.inspect();
+            }
+        }
+
+        public void incrementSize() {
+            this.size++;
+            if (this.parent != null) {
+                this.parent.incrementSize();
+            }
+        }
+
+        private void incrementSize(Node newNode) {
+            this.size += newNode.size;
+            if (this.parent != null) {
+                this.parent.incrementSize(newNode);
+            }
+        }
+
+        private void decrementSize(Node nodeToRemove) {
+            this.size -= nodeToRemove.size;
+            if (this.parent != null) {
+                this.parent.decrementSize(nodeToRemove);
             }
         }
     }
