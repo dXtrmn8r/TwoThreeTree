@@ -77,7 +77,7 @@ public class Tree {
 
         if (xRoot == null)
             return 0;
-        return xRoot.size();
+        return xRoot.size;
     }
 
     /**
@@ -88,7 +88,7 @@ public class Tree {
     public int size() {
         if (root == null)
             return 0;
-        return root.size();
+        return root.size;
     }
 
     /**
@@ -179,10 +179,6 @@ public class Tree {
             return key.get(index);
         }
 
-        private int size() {
-            return this.size;
-        }
-
         /**
          * Splits the node having more than the maximum keys allowed.
          */
@@ -245,14 +241,14 @@ public class Tree {
 
             while (index > cumulativeSize) {
                 nodeToSearch = getChild(indexToSearch);
-                if (index < cumulativeSize + nodeToSearch.size())
+                if (index < cumulativeSize + nodeToSearch.size)
                     return nodeToSearch.get(index - cumulativeSize);
-                else if (index == cumulativeSize + nodeToSearch.size()) {
-                    // assert (cumulativeSize + nodeToSearch.size() + 1 < size());
+                else if (index == cumulativeSize + nodeToSearch.size) {
+                    // assert (cumulativeSize + nodeToSearch.size + 1 < size);
                     return at(indexToSearch);
                 }
 
-                cumulativeSize += (nodeToSearch.size() + 1);
+                cumulativeSize += (nodeToSearch.size + 1);
                 indexToSearch++;
             }
             return getChild(indexToSearch).get(index - cumulativeSize);
@@ -294,10 +290,10 @@ public class Tree {
             }
         }
 
-        private void incrementSize(Node newNode) {
-            this.size += newNode.size;
+        private void incrementSize(Node childNode) {
+            this.size += childNode.size;
             if (this.parent != null) {
-                this.parent.incrementSize(newNode);
+                this.parent.incrementSize(childNode);
             }
         }
 
