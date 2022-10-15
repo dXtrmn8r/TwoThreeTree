@@ -53,7 +53,7 @@ public class Tree {
         }
         Node nodeAdded = root.searchNode(x);
 
-        nodeAdded.addKey(nodeAdded.indexToCheck(x), x);
+        nodeAdded.addKey(x);
 
         if (nodeAdded.numberOfKeys() > Node.MAX_KEY_SIZE)
             nodeAdded.split();
@@ -144,8 +144,8 @@ public class Tree {
             incrementSize(newChild);
         }
 
-        private void addKey(int index, int newKey) {
-            key.add(index, newKey);
+        private void addKey(int newKey) {
+            key.add(indexToCheck(newKey), newKey);
             incrementSize();
         }
 
@@ -187,7 +187,7 @@ public class Tree {
             int medianLocation = 0;
             if (this.parent != null) {
                 newParent = this.parent;
-                newParent.addKey(newParent.indexToCheck(median), median);
+                newParent.addKey(median);
                 medianLocation = parent.key.indexOf(median);
             } else {
                 newParent = this;
