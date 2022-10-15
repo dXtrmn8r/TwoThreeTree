@@ -60,8 +60,6 @@ public class Tree {
         if (root.parent != null)
             root = root.parent;
 
-        root.inspect();
-
         return true;
     }
 
@@ -207,17 +205,17 @@ public class Tree {
                     newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
                     for (int j = 0; j < 2; j++)
                         newParent.getChild(medianLocation + i).addChild(this.getChild(2 * i + j));
-                    if (newParent.numberOfChildren() == 4 && newParent.numberOfKeys() < 3) {
-                        // which will still have the three proper children + the child with 3 keys or four nodes
-                        newParent.decrementSize(newParent.getChild(medianLocation + 2));
-                        newParent.children.remove(medianLocation + 2);
-                    }
+                }
+
+                if (newParent.numberOfChildren() > MAX_CHILDREN_SIZE) {
+                    // which will still have the three proper children + the child with 3 keys or four nodes
+                    newParent.decrementSize(newParent.getChild(medianLocation + 2));
+                    newParent.children.remove(medianLocation + 2);
                 }
             } else {    // if the node only has three children
 
-                for (int i = 0; i < 2; i++) {
+                for (int i = 0; i < 2; i++)
                     newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
-                }
 
                 if (parent == null) {
                     newParent.key.remove(0);    // old left child
@@ -273,14 +271,6 @@ public class Tree {
             while (indexToCheck < this.numberOfKeys() && x > this.at(indexToCheck))
                 indexToCheck++;
             return indexToCheck;
-        }
-
-        private void inspect() {
-            assert (numberOfKeys() <= MAX_KEY_SIZE);
-            assert (numberOfChildren() <= MAX_CHILDREN_SIZE);
-            for (Node child : children) {
-                child.inspect();
-            }
         }
 
         public void incrementSize() {
