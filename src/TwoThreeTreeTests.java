@@ -568,4 +568,75 @@ public class TwoThreeTreeTests {
         finalTwoTreeTree(t);
     }
 
+    @Test
+    public void realWorldTest() {
+        Tree t = new Tree();
+        t.insert(232);
+        assertEquals(1, t.size(232));
+        assertEquals(1, t.size());
+        assertEquals(232, t.get(0));
+
+        t.insert(570);
+        t.insert(579);
+        assertEquals(3, t.size());
+        assertEquals(1, t.size(232));
+        assertEquals(3, t.size(570));
+        assertEquals(1, t.size(579));
+        assertEquals(232, t.get(0));
+        assertEquals(570, t.get(1));
+        assertEquals(579, t.get(2));
+
+
+        t.insert(598);
+        t.insert(849);
+
+        assertEquals(5, t.size());
+        assertEquals(1, t.size(232));
+        assertEquals(5, t.size(570));
+        assertEquals(1, t.size(579));
+        assertEquals(5, t.size(598));
+        assertEquals(1, t.size(849));
+        assertEquals(232, t.get(0));
+        assertEquals(570, t.get(1));
+        assertEquals(579, t.get(2));
+        assertEquals(598, t.get(3));
+        assertEquals(849, t.get(4));
+
+        t.insert(869);
+        t.insert(559);
+        t.insert(626);
+        t.insert(655);
+        t.insert(623);
+        t.insert(694);
+        t.insert(404);
+        t.insert(14);
+        t.insert(208);
+        t.insert(301);
+        t.insert(505);
+        t.insert(796);
+        t.insert(660);
+        t.insert(668);
+        t.insert(671);
+        t.insert(172);
+        t.insert(55);
+        t.insert(235);
+        t.insert(479);
+        t.insert(561);
+        t.insert(717);
+        t.insert(978);
+        t.insert(587);
+        t.insert(893);
+        t.insert(202);
+        t.insert(145);
+        t.insert(737);
+        t.insert(449);
+        t.insert(624);
+        t.insert(160);
+        t.insert(126);
+        t.insert(450);
+        t.insert(999);
+        t.insert(174);
+        t.insert(913);
+    }
+
 }
