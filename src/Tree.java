@@ -273,7 +273,7 @@ public class Tree {
             return indexToCheck;
         }
 
-        public void incrementSize() {
+        private void incrementSize() {
             this.size++;
             if (this.parent != null)
                 this.parent.incrementSize();
