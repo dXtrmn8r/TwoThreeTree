@@ -213,7 +213,6 @@ public class Tree {
                     newParent.children.remove(medianLocation + 2);
                 }
             } else {    // if the node only has three children
-
                 for (int i = 0; i < 2; i++)
                     newParent.addChild(medianLocation + i, new Node(this.at(2 * i)));
 
@@ -235,7 +234,8 @@ public class Tree {
             int indexToSearch = 0;
             Node nodeToSearch;
 
-            if (numberOfChildren() == 0) return this.at(index);
+            if (numberOfChildren() == 0)
+                return this.at(index);
 
             while (index > cumulativeSize) {
                 nodeToSearch = getChild(indexToSearch);
@@ -275,23 +275,20 @@ public class Tree {
 
         public void incrementSize() {
             this.size++;
-            if (this.parent != null) {
+            if (this.parent != null)
                 this.parent.incrementSize();
-            }
         }
 
         private void incrementSize(Node childNode) {
             this.size += childNode.size;
-            if (this.parent != null) {
+            if (this.parent != null)
                 this.parent.incrementSize(childNode);
-            }
         }
 
         private void decrementSize(Node nodeToRemove) {
             this.size -= nodeToRemove.size;
-            if (this.parent != null) {
+            if (this.parent != null)
                 this.parent.decrementSize(nodeToRemove);
-            }
         }
     }
 }
